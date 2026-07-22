@@ -37,9 +37,11 @@ app.add_middleware(
 # Register routers
 from app.api.auth import router as auth_router  # noqa: E402
 from app.api.users import router as users_router  # noqa: E402
+from app.api.documents import router as documents_router  # noqa: E402
 
 app.include_router(auth_router)
 app.include_router(users_router)
+app.include_router(documents_router)
 
 
 @app.get("/api/health")

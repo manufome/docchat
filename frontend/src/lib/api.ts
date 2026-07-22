@@ -3,6 +3,7 @@
 import type {
   ApiKeyData,
   ApiKeyResponse,
+  Document,
   LoginData,
   RegisterData,
   TokenResponse,
@@ -11,7 +12,7 @@ import type {
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
-class ApiError extends Error {
+export class ApiError extends Error {
   status: number;
 
   constructor(message: string, status: number) {
@@ -54,6 +55,42 @@ async function request<T>(
   return response.json() as Promise<T>;
 }
 
+/** Upload a file (multipart) — no Content-Type set, browser includes boundary. */
+async function uploadFile(
+  path: string,
+  file: File,
+  signal?: AbortSignal,
+): Promise<Document> {
+  const token = localStorage.getItem("token");
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const response = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    body: formData,
+    headers,
+    signal,
+  });
+
+  if (!response.ok) {
+    let detail = `HTTP ${response.status}`;
+    try {
+      const body = await response.json();
+      if (body.detail) detail = body.detail;
+    } catch {
+      // ignore parse errors
+    }
+    throw new ApiError(detail, response.status);
+  }
+
+  return response.json() as Promise<Document>;
+}
+
 export const auth = {
   register: (data: RegisterData) =>
     request<TokenResponse>("/api/auth/register", {
@@ -73,5 +110,17 @@ export const auth = {
     request<ApiKeyResponse>("/api/users/me/api-key", {
       method: "PUT",
       body: JSON.stringify(data),
+    }),
+};
+
+export const documents = {
+  list: () => request<Document[]>("/api/documents"),
+
+  upload: (file: File, signal?: AbortSignal) =>
+    uploadFile("/api/documents/upload", file, signal),
+
+  remove: (id: string) =>
+    request<{ detail: string }>(`/api/documents/${id}`, {
+      method: "DELETE",
     }),
 };

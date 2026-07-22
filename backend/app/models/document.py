@@ -17,6 +17,7 @@ class Document(UUIDMixin, TimestampMixin, Base):
     filename: Mapped[str] = mapped_column(String(255), nullable=False)
     file_type: Mapped[str] = mapped_column(String(10), nullable=False)
     file_size: Mapped[int] = mapped_column(Integer, nullable=False)
+    file_path: Mapped[Optional[str]] = mapped_column(String(512), nullable=True)
     chunk_count: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     status: Mapped[str] = mapped_column(
         String(20), nullable=False, default="processing"
