@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { BrowserRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthProvider } from "../../contexts/AuthContext";
+import { ToastProvider } from "../../components/shared/Toast";
 import ChatPage from "../ChatPage";
 
 let mockResponse: unknown = [];
@@ -10,7 +11,6 @@ let mockResponse: unknown = [];
 beforeEach(() => {
   mockResponse = [];
   vi.stubGlobal("fetch", vi.fn().mockImplementation(async (url: string) => {
-    // Return conversations for /api/conversations, messages for /api/conversations/*/messages
     if (url.includes("/api/conversations/") && url.endsWith("/messages")) {
       return { ok: true, json: async () => [] };
     }
@@ -27,7 +27,9 @@ function renderWithProviders() {
   return render(
     <BrowserRouter>
       <AuthProvider>
-        <ChatPage />
+        <ToastProvider>
+          <ChatPage />
+        </ToastProvider>
       </AuthProvider>
     </BrowserRouter>,
   );
@@ -38,8 +40,8 @@ describe("ChatPage", () => {
     mockResponse = [];
     renderWithProviders();
 
-    const newChatBtn = await screen.findByText(/nueva conversación/i);
-    expect(newChatBtn).toBeInTheDocument();
+    const buttons = await screen.findAllByText(/nueva conversación/i);
+    expect(buttons.length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows conversation list in sidebar", async () => {
@@ -52,6 +54,13 @@ describe("ChatPage", () => {
 
     expect(await screen.findByText("Chat 1")).toBeInTheDocument();
     expect(await screen.findByText("Chat 2")).toBeInTheDocument();
+  });
+
+  it("shows empty state when no conversation selected", async () => {
+    mockResponse = [];
+    renderWithProviders();
+
+    expect(await screen.findByText(/Selecciona una conversación/i)).toBeInTheDocument();
   });
 
   it("loads messages when a conversation is selected", async () => {
@@ -68,7 +77,7 @@ describe("ChatPage", () => {
     await user.click(chatTitle);
 
     await waitFor(() => {
-      expect(screen.getByText(/Sube documentos/i)).toBeInTheDocument();
+      expect(screen.getByText(/Tus documentos están listos/i)).toBeInTheDocument();
     });
   });
 });

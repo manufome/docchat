@@ -9,7 +9,7 @@ describe("ChatWindow", () => {
   it("shows empty state when no messages", () => {
     render(<ChatWindow messages={[]} isStreaming={false} onSend={noop} />);
 
-    expect(screen.getByText(/Sube documentos/i)).toBeInTheDocument();
+    expect(screen.getByText(/Tus documentos están listos/i)).toBeInTheDocument();
   });
 
   it("renders user and assistant messages", () => {
