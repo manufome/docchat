@@ -1,0 +1,73 @@
+# openspec/config.yaml
+schema: spec-driven
+
+context: |
+  Tech stack: Python FastAPI (backend) + React TypeScript Tailwind CSS (frontend)
+  Vector DB: ChromaDB
+  Embeddings: sentence-transformers
+  LLM: OpenAI (GPT-4o)
+  Architecture: RAG (Retrieval-Augmented Generation) chat over documents
+  Users upload PDFs, Word docs, Excel files and chat with them
+  AI answers ONLY from uploaded documents with citations
+  Persistence mode: hybrid (Engram + openspec)
+  Initialized: 2026-07-15
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+  specs:
+    - Use Given/When/Then for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Include sequence diagrams for complex flows
+    - Document RAG pipeline design with chunking strategy
+    - Document embedding and retrieval approach
+  tasks:
+    - Group by phase, use hierarchical numbering
+    - Keep tasks completable in one session
+  apply:
+    guidelines:
+      - Follow existing code patterns
+    tdd: true
+    test_command: "pytest && npm test"
+  verify:
+    test_command: "pytest"
+    build_command: ""
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas
+
+testing:
+  strict_tdd: true
+  runners:
+    backend:
+      framework: pytest
+      command: pytest
+      status: needs_setup
+    frontend:
+      framework: vitest
+      command: npx vitest
+      status: needs_setup
+  layers:
+    unit:
+      backend: pytest
+      frontend: vitest
+    integration:
+      backend: httpx + pytest
+      frontend: testing-library/react
+    e2e:
+      backend: —
+      frontend: playwright (planned)
+  coverage:
+    backend: pytest-cov (needs setup)
+    frontend: vitest --coverage (needs setup)
+  quality:
+    linter:
+      backend: ruff (needs setup)
+      frontend: eslint (needs setup)
+    type_checker:
+      backend: mypy (needs setup)
+      frontend: tsc (built-in)
+    formatter:
+      backend: ruff format (needs setup)
+      frontend: prettier (needs setup)
