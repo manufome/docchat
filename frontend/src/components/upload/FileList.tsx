@@ -1,12 +1,10 @@
 /** List of uploaded documents with status and delete action. */
 
-import { documents } from "../../lib/api";
 import type { Document } from "../../types";
 
 interface Props {
   docs: Document[];
   onDeleted: (id: string) => void;
-  onError: (msg: string) => void;
 }
 
 function formatSize(bytes: number): string {
@@ -75,30 +73,27 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-export default function FileList({ docs, onDeleted, onError }: Props) {
+export default function FileList({ docs, onDeleted }: Props) {
   if (docs.length === 0) {
     return (
-      <div className="py-12 text-center text-gray-400">
-        <p className="text-sm">Aún no has subido documentos.</p>
-        <p className="text-xs mt-1">
-          Arrastra un archivo arriba para comenzar.
-        </p>
+      <div className="py-12 text-center">
+        <svg
+          className="w-10 h-10 mx-auto mb-3 text-gray-300"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={1.5}
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+          />
+        </svg>
+        <p className="text-sm text-gray-400">Aún no has subido documentos</p>
       </div>
     );
   }
-
-  const handleDelete = async (id: string, filename: string) => {
-    try {
-      await documents.remove(id);
-      onDeleted(id);
-    } catch (err: unknown) {
-      const msg =
-        err instanceof Error
-          ? `Error al eliminar ${filename}: ${err.message}`
-          : "Error al eliminar el documento.";
-      onError(msg);
-    }
-  };
 
   return (
     <ul className="divide-y divide-gray-100">
@@ -133,7 +128,7 @@ export default function FileList({ docs, onDeleted, onError }: Props) {
 
             <button
               type="button"
-              onClick={() => handleDelete(doc.id, doc.filename)}
+              onClick={() => onDeleted(doc.id)}
               className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"
               title="Eliminar documento"
             >
