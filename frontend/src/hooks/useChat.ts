@@ -1,7 +1,6 @@
 /** SSE streaming hook for DocChat chat completions. */
 
 import { useCallback, useRef, useState } from "react";
-import type { Message } from "../types";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 
@@ -136,7 +135,7 @@ export function useChat(): UseChatReturn {
                 break;
               }
               case "citation": {
-                const citation = event.citation as ChatMessage["citations"][number];
+                const citation = event.citation as NonNullable<ChatMessage["citations"]>[number];
                 if (citation) {
                   currentCitations = [...currentCitations, citation];
                 }

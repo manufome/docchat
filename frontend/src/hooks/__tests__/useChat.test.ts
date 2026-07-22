@@ -1,5 +1,5 @@
-import { act, renderHook, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { act, renderHook } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useChat } from "../useChat";
 
 describe("useChat", () => {
@@ -27,7 +27,7 @@ describe("useChat", () => {
       },
     });
 
-    global.fetch = vi.fn().mockResolvedValue({
+    (globalThis as any).fetch = vi.fn().mockResolvedValue({
       ok: true,
       headers: new Headers({ "Content-Type": "text/event-stream" }),
       body: mockResponse,
@@ -69,7 +69,7 @@ describe("useChat", () => {
       },
     });
 
-    global.fetch = vi.fn().mockResolvedValue({
+    (globalThis as any).fetch = vi.fn().mockResolvedValue({
       ok: true,
       headers: new Headers({ "Content-Type": "text/event-stream" }),
       body: mockResponse,
@@ -106,7 +106,7 @@ describe("useChat", () => {
       },
     });
 
-    global.fetch = vi.fn().mockResolvedValue({
+    (globalThis as any).fetch = vi.fn().mockResolvedValue({
       ok: true,
       headers: new Headers({ "Content-Type": "text/event-stream" }),
       body: mockResponse,
@@ -134,7 +134,7 @@ describe("useChat", () => {
       },
     });
 
-    global.fetch = vi.fn().mockResolvedValue({
+    (globalThis as any).fetch = vi.fn().mockResolvedValue({
       ok: true,
       headers: new Headers({ "Content-Type": "text/event-stream" }),
       body: mockResponse,
@@ -151,7 +151,7 @@ describe("useChat", () => {
   });
 
   it("handles HTTP errors from fetch", async () => {
-    global.fetch = vi.fn().mockResolvedValue({
+    (globalThis as any).fetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 401,
       json: () => Promise.resolve({ detail: "Not authenticated" }),

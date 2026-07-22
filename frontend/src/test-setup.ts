@@ -2,7 +2,7 @@ import "@testing-library/jest-dom";
 
 // Polyfill ResizeObserver for Radix UI popover tests
 if (typeof ResizeObserver === "undefined") {
-  global.ResizeObserver = class ResizeObserver {
+  (globalThis as unknown as Record<string, unknown>).ResizeObserver = class ResizeObserver {
     observe() {}
     unobserve() {}
     disconnect() {}

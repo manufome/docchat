@@ -47,11 +47,18 @@ export interface Conversation {
   updated_at: string;
 }
 
+export interface Citation {
+  index: number;
+  document_name: string;
+  page: string | number;
+  text_preview: string;
+}
+
 export interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
-  citations: Record<string, unknown> | null;
+  citations: Citation[] | null;
   created_at: string;
 }
 
