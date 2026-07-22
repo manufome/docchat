@@ -173,7 +173,7 @@ npx vitest run
 
 ## Autor
 
-**Manuel Forero** — Junior Web Developer
+**Manuel Forero** — Full Stack Developer
 
 - GitHub: [@manufome](https://github.com/manufome)
-- LinkedIn: [Manuel Forero](https://linkedin.com/in/manuel-forero)
+- LinkedIn: [Manuel Forero](https://linkedin.com/in/manuel-forero-5a02b1304)
