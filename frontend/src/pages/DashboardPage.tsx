@@ -104,15 +104,18 @@ export default function DashboardPage() {
           )}
         </section>
 
-        {/* Empty state CTA */}
+        {/* Chat CTA */}
         {!loading && docs.length > 0 && docs.some((d) => d.status === "ready") && (
           <div className="mt-8 text-center">
-            <p className="text-sm text-gray-500 mb-2">
+            <p className="text-sm text-gray-500 mb-3">
               Tienes documentos listos para consultar.
             </p>
-            <p className="text-xs text-gray-400">
-              La funcionalidad de chat estará disponible próximamente.
-            </p>
+            <a
+              href="/chat"
+              className="inline-block px-6 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Ir al chat
+            </a>
           </div>
         )}
       </main>
