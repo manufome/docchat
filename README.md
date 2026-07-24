@@ -2,7 +2,8 @@
 
 Aplicación RAG (Generación Aumentada por Recuperación) para chatear con tus documentos. Subí PDFs, archivos de Word o Excel, y hace preguntas en lenguaje natural. La IA responde **exclusivamente** con el contenido de tus documentos y muestra la fuente exacta de cada respuesta.
 
-**Demo:** [próximamente](#)
+**Demo:** [docchat-frontend-production.up.railway.app](https://docchat-frontend-production.up.railway.app)  
+**API Docs:** [docchat-backend-production-8b2b.up.railway.app/docs](https://docchat-backend-production-8b2b.up.railway.app/docs)
 **Backend:** Python FastAPI | **Frontend:** React + TypeScript + Tailwind CSS
 
 ## Capturas
@@ -97,6 +98,17 @@ docker compose up --build
 
 La aplicación corre en `http://localhost`.
 
+### Railway
+
+El proyecto está desplegado en Railway como dos servicios:
+
+| Servicio | Stack | Variables requeridas |
+|----------|-------|---------------------|
+| `docchat-backend` | FastAPI (uvicorn) | `SECRET_KEY`, `CORS_ORIGINS` |
+| `docchat-frontend` | React SPA (nginx) | `BACKEND_URL` (URL pública del backend) |
+
+El frontend usa inyección runtime via `config.js` — no requiere build-time variables.
+
 ## Variables de Entorno
 
 ### Backend (`.env`)
@@ -115,7 +127,7 @@ La aplicación corre en `http://localhost`.
 
 | Variable | Descripción | Valor por defecto |
 |----------|-------------|-------------------|
-| `VITE_API_URL` | URL base del backend | `http://localhost:8000` |
+| `BACKEND_URL` | URL base del backend (runtime, inyectada vía `config.js`) | `http://backend:8000` |
 
 ## API
 
@@ -156,7 +168,7 @@ cd frontend
 npx vitest run
 ```
 
-**Cobertura actual:** 197 pruebas (135 backend + 62 frontend).
+**Cobertura actual:** 198 pruebas (136 backend + 62 frontend).
 
 ## Roadmap
 
@@ -169,7 +181,7 @@ npx vitest run
 - [ ] Arrastrar múltiples archivos a la vez
 - [ ] Búsqueda híbrida (vectorial + lexical)
 - [ ] Compartir documentos entre usuarios
-- [ ] Despliegue en producción
+- [x] Despliegue en producción (Railway)
 
 ## Autor
 
