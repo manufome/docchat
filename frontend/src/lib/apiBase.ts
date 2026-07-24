@@ -3,16 +3,24 @@
  *
  * Priority:
  * 1. Build-time ``VITE_API_URL`` (set via Docker build-arg or Railway build var)
- * 2. Same-origin (the React app and nginx proxy live on the same domain)
- *
- * When using Docker Compose, nginx proxies ``/api/`` to the backend
- * container automatically.  On Railway, ``BACKEND_URL`` is injected as an
- * nginx env var and the proxy target is set at runtime via ``envsubst``.
+ * 2. Runtime ``window.__API_URL__`` (injected via config.js by nginx at container start)
+ * 3. Same-origin (empty string) — for Docker Compose with nginx proxy
  */
+
+declare global {
+  interface Window {
+    __API_URL__?: string;
+  }
+}
 
 export function getApiBaseUrl(): string {
   const viteUrl = import.meta.env.VITE_API_URL;
   if (viteUrl) return viteUrl;
-  // Same-origin: nginx proxies /api/ to the backend
+
+  if (typeof window !== "undefined" && window.__API_URL__) {
+    return window.__API_URL__;
+  }
+
+  // Same-origin: nginx proxies /api/ to the backend (Docker Compose)
   return "";
 }
