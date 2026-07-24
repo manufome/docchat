@@ -177,10 +177,6 @@ npx vitest run
 - [x] Chat con flujo continuo y citas
 - [x] Historial de conversaciones
 - [x] Docker
-- [ ] Vista previa de documentos en el navegador
-- [ ] Arrastrar múltiples archivos a la vez
-- [ ] Búsqueda híbrida (vectorial + lexical)
-- [ ] Compartir documentos entre usuarios
 - [x] Despliegue en producción (Railway)
 
 ## Autor
