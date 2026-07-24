@@ -4,6 +4,7 @@ export interface User {
   id: string;
   email: string;
   created_at: string;
+  llm_provider?: string;
 }
 
 export interface TokenResponse {
@@ -23,7 +24,8 @@ export interface RegisterData {
 }
 
 export interface ApiKeyData {
-  openai_api_key: string;
+  api_key: string;
+  provider: "openai" | "gemini" | "groq";
 }
 
 export interface ApiKeyResponse {
@@ -60,6 +62,11 @@ export interface Message {
   content: string;
   citations: Citation[] | null;
   created_at: string;
+}
+
+export interface UserProviderResponse {
+  provider: string;
+  has_key: boolean;
 }
 
 export interface AuthState {

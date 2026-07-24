@@ -8,6 +8,7 @@ import type {
   RegisterData,
   TokenResponse,
   User,
+  UserProviderResponse,
 } from "../types";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
@@ -111,6 +112,8 @@ export const auth = {
       method: "PUT",
       body: JSON.stringify(data),
     }),
+
+  getProvider: () => request<UserProviderResponse>("/api/users/me/provider"),
 };
 
 export const documents = {

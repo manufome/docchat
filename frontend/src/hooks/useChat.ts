@@ -1,8 +1,9 @@
 /** SSE streaming hook for DocChat chat completions. */
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
+const STREAM_TIMEOUT_MS = 60_000; // Abort if no event arrives within 60s
 
 export interface ChatMessage {
   id?: string;
@@ -55,6 +56,17 @@ export function useChat(): UseChatReturn {
       const controller = new AbortController();
       abortRef.current = controller;
 
+      // Watchdog timer — if no event arrives within STREAM_TIMEOUT_MS, abort
+      const watchdogRef = { timerId: null as ReturnType<typeof setTimeout> | null };
+      function resetWatchdog() {
+        if (watchdogRef.timerId) clearTimeout(watchdogRef.timerId);
+        watchdogRef.timerId = setTimeout(() => {
+          controller.abort();
+          setError("El servicio no está respondiendo. Intente de nuevo o cambie de proveedor.");
+          setIsStreaming(false);
+        }, STREAM_TIMEOUT_MS);
+      }
+
       const token = localStorage.getItem("token");
       const body: Record<string, unknown> = { message };
       if (conversationId) {
@@ -73,6 +85,7 @@ export function useChat(): UseChatReturn {
         });
 
         if (!response.ok) {
+          if (watchdogRef.timerId) clearTimeout(watchdogRef.timerId);
           let detail = `HTTP ${response.status}`;
           try {
             const errBody = await response.json();
@@ -88,6 +101,7 @@ export function useChat(): UseChatReturn {
 
         const reader = response.body?.getReader();
         if (!reader) {
+          if (watchdogRef.timerId) clearTimeout(watchdogRef.timerId);
           setError("No se pudo establecer conexión de streaming.");
           setMessages((prev) => prev.slice(0, -1));
           setIsStreaming(false);
@@ -98,6 +112,10 @@ export function useChat(): UseChatReturn {
         let buffer = "";
         let currentCitations: ChatMessage["citations"] = [];
         let resolvedConversationId: string | undefined = conversationId;
+        let hasReceivedEvent = false;
+
+        // Start the watchdog timer
+        resetWatchdog();
 
         // Read the stream
         while (true) {
@@ -117,6 +135,9 @@ export function useChat(): UseChatReturn {
             } catch {
               continue;
             }
+
+            hasReceivedEvent = true;
+            resetWatchdog(); // Reset timer on each event
 
             switch (event.type) {
               case "token": {
@@ -168,11 +189,13 @@ export function useChat(): UseChatReturn {
           }
         }
 
+        if (watchdogRef.timerId) clearTimeout(watchdogRef.timerId);
         setIsStreaming(false);
         return resolvedConversationId;
       } catch (err: unknown) {
+        if (watchdogRef.timerId) clearTimeout(watchdogRef.timerId);
         if (err instanceof DOMException && err.name === "AbortError") {
-          // User aborted — ignore
+          // User aborted or watchdog timed out — ignore
           setIsStreaming(false);
           return undefined;
         }

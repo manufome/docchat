@@ -5,13 +5,21 @@ import type { ChatMessage } from "../../hooks/useChat";
 import { ChatInput } from "./ChatInput";
 import { MessageBubble } from "./MessageBubble";
 
+interface CitationData {
+  index: number;
+  document_name: string;
+  page: number | string;
+  text_preview: string;
+}
+
 interface ChatWindowProps {
   messages: ChatMessage[];
   isStreaming: boolean;
   onSend: (message: string) => Promise<void> | void;
+  onCitationClick?: (citation: CitationData, allCitations: CitationData[]) => void;
 }
 
-export function ChatWindow({ messages, isStreaming, onSend }: ChatWindowProps) {
+export function ChatWindow({ messages, isStreaming, onSend, onCitationClick }: ChatWindowProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when messages change
@@ -44,6 +52,7 @@ export function ChatWindow({ messages, isStreaming, onSend }: ChatWindowProps) {
           <MessageBubble
             key={i}
             message={msg}
+            onCitationClick={onCitationClick}
           />
         ))}
 

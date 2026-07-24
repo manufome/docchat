@@ -56,7 +56,7 @@ async def client():
     SQLite in-memory databases are per-connection, so we use a file-based
     database to ensure the app's get_db sessions share the same data.
     """
-    from app.core.deps import get_db
+    from app.core.deps import get_async_session_factory, get_db
     from app.main import app
 
     # Use a temp file for the test database
@@ -78,7 +78,7 @@ async def client():
         expire_on_commit=False,
     )
 
-    # Override get_db dependency in the app
+    # Override database dependencies in the app
     async def override_get_db():
         async with test_session_factory() as session:
             try:
@@ -89,6 +89,11 @@ async def client():
                 raise
 
     app.dependency_overrides[get_db] = override_get_db
+
+    async def override_get_session_factory():
+        return test_session_factory
+
+    app.dependency_overrides[get_async_session_factory] = override_get_session_factory
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://test") as ac:

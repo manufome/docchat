@@ -3,15 +3,23 @@
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ChatMessage } from "../../hooks/useChat";
-import { CitationPopover } from "./CitationPopover";
+
+interface CitationData {
+  index: number;
+  document_name: string;
+  page: number | string;
+  text_preview: string;
+}
 
 interface MessageBubbleProps {
   message: ChatMessage;
+  onCitationClick?: (citation: CitationData, allCitations: CitationData[]) => void;
 }
 
-export function MessageBubble({ message }: MessageBubbleProps) {
+export function MessageBubble({ message, onCitationClick }: MessageBubbleProps) {
   const isUser = message.role === "user";
-  const hasCitations = !isUser && message.citations && message.citations.length > 0;
+  const citations = (message.citations ?? []) as CitationData[];
+  const hasCitations = !isUser && citations.length > 0;
 
   return (
     <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}>
@@ -30,17 +38,18 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           </div>
         )}
 
-        {/* Citation badges with popovers */}
+        {/* Citation badges — click to open side panel */}
         {hasCitations && (
           <div className="flex flex-wrap gap-1 mt-2">
-            {message.citations!.map((citation) => (
-              <CitationPopover
+            {citations.map((citation) => (
+              <button
                 key={citation.index}
-                index={citation.index}
-                documentName={citation.document_name}
-                page={citation.page}
-                textPreview={citation.text_preview}
-              />
+                type="button"
+                onClick={() => onCitationClick?.(citation, citations)}
+                className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-800 rounded-full hover:bg-blue-200 transition-colors cursor-pointer"
+              >
+                [{citation.index}]
+              </button>
             ))}
           </div>
         )}

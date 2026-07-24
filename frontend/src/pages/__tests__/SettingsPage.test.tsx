@@ -6,10 +6,27 @@ import { AuthProvider } from "../../contexts/AuthContext";
 import { ToastProvider } from "../../components/shared/Toast";
 import SettingsPage from "../SettingsPage";
 
+let fetchCount = 0;
+
 beforeEach(() => {
-  vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-    ok: true,
-    json: async () => ({}),
+  fetchCount = 0;
+  vi.stubGlobal("fetch", vi.fn().mockImplementation(async (url: string) => {
+    fetchCount++;
+    // GET /api/users/me/provider — called on mount
+    if (url.toString().includes("/api/users/me/provider")) {
+      return {
+        ok: true,
+        json: async () => ({ provider: "openai", has_key: false }),
+      };
+    }
+    // PUT /api/users/me/api-key — called on form submit
+    if (url.toString().includes("/api/users/me/api-key")) {
+      return {
+        ok: true,
+        json: async () => ({ message: "ok" }),
+      };
+    }
+    return { ok: true, json: async () => ({}) };
   }));
 });
 
@@ -78,9 +95,15 @@ describe("SettingsPage", () => {
     await user.click(btn);
 
     await waitFor(() => {
-      // Fetch should have been called at least once for auth.me (on mount)
-      // and once for the API key PUT
-      expect(fetch).toHaveBeenCalled();
+      // Should have called PUT /api/users/me/api-key with the new payload
+      const calls = (fetch as ReturnType<typeof vi.fn>).mock.calls;
+      const putCall = calls.find((c: unknown[]) =>
+        String(c[0]).includes("/api/users/me/api-key"),
+      );
+      expect(putCall).toBeDefined();
+      const [, opts] = putCall as [string, RequestInit];
+      const body = JSON.parse(opts.body as string);
+      expect(body).toMatchObject({ api_key: "sk-test-key", provider: "openai" });
     });
   });
 });

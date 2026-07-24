@@ -16,7 +16,7 @@ async def test_set_api_key_success(client):
     # Set API key
     response = await client.put(
         "/api/users/me/api-key",
-        json={"openai_api_key": "sk-test-key-12345"},
+        json={"api_key": "sk-test-key-12345", "provider": "openai"},
         headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == 200
@@ -29,7 +29,7 @@ async def test_set_api_key_unauthenticated(client):
     """TRIANGULATE: Cannot set API key without auth."""
     response = await client.put(
         "/api/users/me/api-key",
-        json={"openai_api_key": "sk-test-key-12345"},
+        json={"api_key": "sk-test-key-12345", "provider": "openai"},
     )
     assert response.status_code == 401
 
@@ -45,7 +45,7 @@ async def test_set_api_key_empty(client):
 
     response = await client.put(
         "/api/users/me/api-key",
-        json={"openai_api_key": ""},
+        json={"api_key": "", "provider": "openai"},
         headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == 422

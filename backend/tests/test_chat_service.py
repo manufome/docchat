@@ -89,14 +89,15 @@ class TestProcessChatMessage:
             mock_client = MagicMock()
             mock_client.chat.completions.create = AsyncMock(return_value=mock_stream)
 
-            with patch("app.services.chat_service.AsyncOpenAI", return_value=mock_client):
+            with patch("app.services.llm_providers.AsyncOpenAI", return_value=mock_client):
                 events = []
                 async for event in process_chat_message(
                     user_id="user-1",
                     conversation_id="conv-1",
                     message="¿Cuál es la capital de Francia?",
                     db=mock_db,
-                    openai_api_key="sk-test",
+                    api_key="sk-test",
+                    llm_provider="openai",
                 ):
                     events.append(event)
 
@@ -158,14 +159,15 @@ class TestProcessChatMessage:
             mock_client = MagicMock()
             mock_client.chat.completions.create = AsyncMock(return_value=mock_stream)
 
-            with patch("app.services.chat_service.AsyncOpenAI", return_value=mock_client):
+            with patch("app.services.llm_providers.AsyncOpenAI", return_value=mock_client):
                 events = []
                 async for event in process_chat_message(
                     user_id="user-1",
                     conversation_id="conv-1",
                     message="¿Capital?",
                     db=mock_db,
-                    openai_api_key="sk-test",
+                    api_key="sk-test",
+                    llm_provider="openai",
                 ):
                     events.append(event)
 
@@ -192,7 +194,8 @@ class TestProcessChatMessage:
                 conversation_id="conv-1",
                 message="Pregunta sin contexto",
                 db=mock_db,
-                openai_api_key="sk-test",
+                api_key="sk-test",
+                llm_provider="openai",
             ):
                 events.append(event)
 

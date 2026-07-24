@@ -1,10 +1,10 @@
 """Chat service: core RAG+LLM orchestration for streaming chat responses."""
 
+import asyncio
 from collections.abc import AsyncGenerator
 from datetime import datetime, timezone
 from typing import Optional
 
-from openai import AsyncOpenAI
 from sqlalchemy import select
 
 from app.core.config import settings
@@ -16,6 +16,7 @@ from app.rag.embedding import embed_query
 from app.rag.prompt import build_rag_prompt
 from app.rag.retrieval import retrieve_chunks
 from app.services.citation_service import build_citation_map, parse_citations
+from app.services.llm_providers import PROVIDER_DISPLAY, PROVIDER_STREAM
 
 
 async def save_user_message(
@@ -71,18 +72,26 @@ async def process_chat_message(
     conversation_id: str,
     message: str,
     db,
-    openai_api_key: str,
+    api_key: str,
+    llm_provider: str = "openai",
+    skip_save_user: bool = False,
 ) -> AsyncGenerator[dict, None]:
     """Orchestrate the full RAG+LLM chat pipeline.
 
+    Parameters
+    ----------
+    skip_save_user
+        When True, skips saving the user message. Used by the SSE endpoint
+        which already saves and commits the user message before streaming.
+
     Steps
     -----
-    1. Save the user's message to the database.
+    1. Save the user's message to the database (unless *skip_save_user*).
     2. Embed the message for retrieval.
     3. Retrieve relevant chunks from ChromaDB (user_id filtered, k=5).
     4. If no chunks found, yield an error event and stop.
     5. Build the RAG prompt with context chunks.
-    6. Stream the response from OpenAI.
+    6. Stream the response from the configured LLM provider.
     7. Parse citations from the streamed response.
     8. Save the assistant message with citations to the database.
     9. Update the conversation timestamp.
@@ -92,8 +101,11 @@ async def process_chat_message(
     dict
         SSE event dicts with ``type`` and event-specific fields.
     """
-    # 1. Save user message
-    await save_user_message(db, conversation_id, user_id, message)
+    provider_name = PROVIDER_DISPLAY.get(llm_provider, llm_provider)
+
+    # 1. Save user message (skip if caller already did for early commit)
+    if not skip_save_user:
+        await save_user_message(db, conversation_id, user_id, message)
 
     # 2. Embed the query
     query_embedding = embed_query(message)
@@ -117,12 +129,12 @@ async def process_chat_message(
         if not has_docs:
             yield {
                 "type": "error",
-                "content": "No tienes documentos subidos. Sube al menos un documento para empezar a chatear.",
+                "content": "No tiene documentos subidos. Suba al menos un documento para empezar a chatear.",
             }
         else:
             yield {
                 "type": "error",
-                "content": "No encontré información relevante en tus documentos para responder esa pregunta.",
+                "content": "No se encontró información relevante en sus documentos para responder esa pregunta.",
             }
         return
 
@@ -130,34 +142,70 @@ async def process_chat_message(
     messages = build_rag_prompt(message, chunks)
     citation_map = build_citation_map(chunks)
 
-    # 6. Stream from OpenAI
-    client = AsyncOpenAI(api_key=openai_api_key)
+    # 6. Stream from the configured provider
+    stream_fn = PROVIDER_STREAM.get(llm_provider)
+    if not stream_fn:
+        yield {
+            "type": "error",
+            "content": f"Proveedor LLM no válido: {provider_name}",
+        }
+        return
+
     full_response: list[str] = []
 
     try:
-        stream = await client.chat.completions.create(
-            model="gpt-4o",
-            messages=messages,
-            stream=True,
-            max_tokens=settings.openai_max_tokens,
-            timeout=settings.openai_timeout_seconds,
-        )
-
-        async for chunk in stream:
-            delta = chunk.choices[0].delta if chunk.choices else None
-            if delta and delta.content:
-                full_response.append(delta.content)
-                yield {"type": "token", "content": delta.content}
+        # Wrap the LLM stream with a per-token timeout so the stream never
+        # hangs forever if the provider stops responding mid-stream.
+        llm_gen = stream_fn(messages, api_key)
+        timeout = getattr(settings, "openai_timeout_seconds", 30)
+        while True:
+            try:
+                token = await asyncio.wait_for(llm_gen.__anext__(), timeout=timeout)
+                full_response.append(token)
+                yield {"type": "token", "content": token}
+            except StopAsyncIteration:
+                break
+    except asyncio.TimeoutError:
+        yield {
+            "type": "error",
+            "content": (
+                f"{provider_name} no está respondiendo. "
+                f"Puede intentar de nuevo o cambiar a otro proveedor desde Configuración."
+            ),
+        }
+        return
 
     except Exception as e:
         error_msg = str(e)
-        if "401" in error_msg or "Unauthorized" in error_msg or "incorrect" in error_msg.lower():
+        if "401" in error_msg or "Unauthorized" in error_msg or "incorrect" in error_msg.lower() or "API_KEY" in error_msg or "not found" in error_msg.lower() and "api" in error_msg.lower():
             yield {
                 "type": "error",
-                "content": "No has configurado tu clave API de OpenAI. Ve a tu perfil para agregarla.",
+                "content": f"No ha configurado su clave API de {provider_name}. Vaya a su perfil para agregarla.",
+            }
+        elif "429" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
+            retry_info = ""
+            import re
+            match = re.search(r"retry in (\d+\.?\d*)s", error_msg, re.IGNORECASE)
+            if match:
+                seconds = float(match.group(1))
+                if seconds < 120:
+                    retry_info = f" Puede intentar de nuevo en unos {int(seconds)} segundos."
+                else:
+                    retry_info = f" Puede intentar de nuevo en aproximadamente {int(seconds // 60)} minutos."
+            yield {
+                "type": "error",
+                "content": (
+                    f"{provider_name} agotó su cuota gratuita por ahora. "
+                    f"La capa gratuita de {provider_name} tiene límites bajos de solicitudes por minuto."
+                    f"{retry_info}"
+                    f" También puede cambiar a otro proveedor (Groq tiene un plan gratuito más generoso) desde Configuración."
+                ),
             }
         else:
-            yield {"type": "error", "content": f"Error al comunicarse con OpenAI: {error_msg}"}
+            yield {
+                "type": "error",
+                "content": f"Error al comunicarse con {provider_name}: {error_msg}",
+            }
         return
 
     # 7. Parse citations from the full response

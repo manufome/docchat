@@ -61,13 +61,20 @@ class TestAuthSchemas:
 class TestUserSchemas:
     def test_valid_api_key_request(self):
         """RED: Valid API key request passes."""
-        data = ApiKeyRequest(openai_api_key="sk-valid-key-12345")
-        assert data.openai_api_key == "sk-valid-key-12345"
+        data = ApiKeyRequest(api_key="sk-valid-key-12345", provider="openai")
+        assert data.api_key == "sk-valid-key-12345"
+        assert data.provider == "openai"
+
+    def test_invalid_provider_rejected(self):
+        """RED: Invalid provider is rejected."""
+        import pydantic
+        with pytest.raises(pydantic.ValidationError):
+            ApiKeyRequest(api_key="test", provider="invalid")
 
     def test_empty_api_key_rejected(self):
         """TRIANGULATE: Empty API key is rejected."""
         with pytest.raises(ValidationError):
-            ApiKeyRequest(openai_api_key="")
+            ApiKeyRequest(api_key="", provider="openai")
 
     def test_api_key_response(self):
         """RED: API key response message."""

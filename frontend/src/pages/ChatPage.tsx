@@ -6,6 +6,7 @@ import { useToast } from "../components/shared/Toast";
 import { useChat, type ChatMessage } from "../hooks/useChat";
 import { useConversations } from "../hooks/useConversations";
 import { ChatWindow } from "../components/chat/ChatWindow";
+import { CitationSidePanel } from "../components/chat/CitationSidePanel";
 import { DeleteConfirmationDialog } from "../components/shared/DeleteConfirmationDialog";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
@@ -34,6 +35,12 @@ export default function ChatPage() {
   >([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+
+  // Citation side panel state
+  const [citationPanel, setCitationPanel] = useState<{
+    citations: Array<{ index: number; document_name: string; page: number | string; text_preview: string }>;
+    activeIndex: number;
+  } | null>(null);
 
   // Load messages when a conversation is selected
   useEffect(() => {
@@ -87,6 +94,13 @@ export default function ChatPage() {
       addToast("Error al crear la conversación.", "error");
     }
   }, [clearMessages, createConversation, addToast]);
+
+  const handleCitationClick = useCallback(
+    (citation: { index: number; document_name: string; page: number | string; text_preview: string }, allCitations: typeof citation[]) => {
+      setCitationPanel({ citations: allCitations, activeIndex: citation.index });
+    },
+    [],
+  );
 
   const handleDeleteConv = useCallback(
     async (id: string) => {
@@ -233,12 +247,21 @@ export default function ChatPage() {
               }))}
               isStreaming={isStreaming}
               onSend={handleSend}
+              onCitationClick={handleCitationClick}
             />
           )}
         </div>
       </main>
 
       {/* Delete confirmation dialog */}
+      {/* Citation side panel */}
+      <CitationSidePanel
+        isOpen={citationPanel !== null}
+        citations={citationPanel?.citations ?? []}
+        activeIndex={citationPanel?.activeIndex ?? null}
+        onClose={() => setCitationPanel(null)}
+      />
+
       <DeleteConfirmationDialog
         isOpen={deleteTarget !== null}
         title="Eliminar conversación"

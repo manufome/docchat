@@ -42,7 +42,7 @@ class TestChatStream:
         # Set up API key
         await client.put(
             "/api/users/me/api-key",
-            json={"openai_api_key": "sk-real-key-for-testing"},
+            json={"api_key": "sk-real-key-for-testing", "provider": "openai"},
             headers={"Authorization": f"Bearer {token}"},
         )
 
@@ -100,7 +100,7 @@ class TestChatStream:
         # Set up API key
         await client.put(
             "/api/users/me/api-key",
-            json={"openai_api_key": "sk-real-key-for-testing"},
+            json={"api_key": "sk-real-key-for-testing", "provider": "openai"},
             headers={"Authorization": f"Bearer {token}"},
         )
 
