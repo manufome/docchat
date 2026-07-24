@@ -13,7 +13,14 @@ from app.db.session import engine
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """Application lifespan: create tables on startup, dispose engine on shutdown."""
+    """Application lifespan: create data dir and tables on startup."""
+    # Ensure data directory exists (for SQLite, Chroma, uploads)
+    import os
+
+    os.makedirs(settings.data_dir, exist_ok=True)
+    os.makedirs(settings.upload_dir, exist_ok=True)
+    os.makedirs(settings.chroma_path, exist_ok=True)
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield

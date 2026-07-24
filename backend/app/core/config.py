@@ -8,9 +8,10 @@ class Settings(BaseSettings):
 
     app_name: str = "DocChat"
     secret_key: str
-    database_url: str = "sqlite+aiosqlite:///./backend/data/docchat.db"
-    chroma_path: str = "./backend/data/chroma"
-    upload_dir: str = "./backend/data/uploads"
+    database_url: str = "sqlite+aiosqlite:///./data/docchat.db"
+    chroma_path: str = "./data/chroma"
+    upload_dir: str = "./data/uploads"
+    data_dir: str = "./data"
     cors_origins: str = "http://localhost:5173"
     max_upload_size_mb: int = 10
     max_files_per_user: int = 4

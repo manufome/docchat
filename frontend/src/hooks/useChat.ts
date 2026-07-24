@@ -1,6 +1,6 @@
 /** SSE streaming hook for DocChat chat completions. */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 const API_BASE = import.meta.env.VITE_API_URL ?? "";
 const STREAM_TIMEOUT_MS = 60_000; // Abort if no event arrives within 60s
@@ -112,7 +112,6 @@ export function useChat(): UseChatReturn {
         let buffer = "";
         let currentCitations: ChatMessage["citations"] = [];
         let resolvedConversationId: string | undefined = conversationId;
-        let hasReceivedEvent = false;
 
         // Start the watchdog timer
         resetWatchdog();
@@ -136,7 +135,6 @@ export function useChat(): UseChatReturn {
               continue;
             }
 
-            hasReceivedEvent = true;
             resetWatchdog(); // Reset timer on each event
 
             switch (event.type) {

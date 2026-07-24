@@ -8,7 +8,10 @@ services:
     environment:
       - SECRET_KEY=${SECRET_KEY}
       - DATABASE_URL=sqlite+aiosqlite:///data/docchat.db
-      - CORS_ORIGINS=http://localhost:5173,http://localhost
+      - CHROMA_PATH=/app/data/chroma
+      - UPLOAD_DIR=/app/data/uploads
+      - DATA_DIR=/app/data
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173,http://localhost}
     volumes:
       - backend_data:/app/data
     restart: unless-stopped
