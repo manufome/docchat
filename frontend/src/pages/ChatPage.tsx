@@ -8,8 +8,9 @@ import { useConversations } from "../hooks/useConversations";
 import { ChatWindow } from "../components/chat/ChatWindow";
 import { CitationSidePanel } from "../components/chat/CitationSidePanel";
 import { DeleteConfirmationDialog } from "../components/shared/DeleteConfirmationDialog";
+import { getApiBaseUrl } from "../lib/apiBase";
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
+const API_BASE = getApiBaseUrl();
 
 export default function ChatPage() {
   const { user } = useAuth();

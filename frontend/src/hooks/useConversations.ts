@@ -2,8 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { Conversation } from "../types";
+import { getApiBaseUrl } from "../lib/apiBase";
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
+const API_BASE = getApiBaseUrl();
 
 interface UseConversationsReturn {
   conversations: Conversation[];

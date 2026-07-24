@@ -10,8 +10,9 @@ import type {
   User,
   UserProviderResponse,
 } from "../types";
+import { getApiBaseUrl } from "./apiBase";
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
+const API_BASE = getApiBaseUrl();
 
 export class ApiError extends Error {
   status: number;

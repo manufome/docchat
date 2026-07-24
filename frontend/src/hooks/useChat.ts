@@ -1,8 +1,9 @@
 /** SSE streaming hook for DocChat chat completions. */
 
 import { useCallback, useRef, useState } from "react";
+import { getApiBaseUrl } from "../lib/apiBase";
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "";
+const API_BASE = getApiBaseUrl();
 const STREAM_TIMEOUT_MS = 60_000; // Abort if no event arrives within 60s
 
 export interface ChatMessage {
