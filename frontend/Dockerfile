@@ -18,7 +18,7 @@ COPY nginx.conf /etc/nginx/conf.d/default.conf.template
 
 EXPOSE 8080
 
-CMD BACKEND_URL="${BACKEND_URL:-backend:8000}" envsubst '${BACKEND_URL}' \
+CMD BACKEND_URL="${BACKEND_URL:-http://backend:8000}" envsubst '${BACKEND_URL}' \
     < /etc/nginx/conf.d/default.conf.template \
     > /etc/nginx/conf.d/default.conf && \
     nginx -g "daemon off;"
