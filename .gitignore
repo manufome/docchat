@@ -34,3 +34,6 @@ backend/chroma_data/
 
 # Artifact directories
 backend/backend/
+*.db
+*.db-wal
+*.db-shm
