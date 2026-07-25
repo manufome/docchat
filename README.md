@@ -1,5 +1,7 @@
 # DocChat
 
+[![CI](https://github.com/manufome/docchat/actions/workflows/ci.yml/badge.svg)](https://github.com/manufome/docchat/actions/workflows/ci.yml)
+
 Aplicación RAG (Generación Aumentada por Recuperación) para chatear con tus documentos. Subí PDFs, archivos de Word o Excel, y hace preguntas en lenguaje natural. La IA responde **exclusivamente** con el contenido de tus documentos y muestra la fuente exacta de cada respuesta.
 
 **Demo:** [docchat-frontend-production.up.railway.app](https://docchat-frontend-production.up.railway.app)  
