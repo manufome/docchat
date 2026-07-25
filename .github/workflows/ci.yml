@@ -28,7 +28,7 @@ jobs:
       - name: Run tests
         run: python -m pytest tests/ -q --tb=short
         env:
-          SECRET_KEY: ci-test-key-not-for-production
+          SECRET_KEY: test-secret-key-for-testing-purposes-only
 
   frontend:
     runs-on: ubuntu-latest
